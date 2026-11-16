@@ -1,0 +1,192 @@
+# Nova Games: seven independent Spring Boot applications, one private network.
+# All published ports are restricted to the local PC for development.
+name: nova-games
+
+x-client-env: &client-env
+  EUREKA_URL: http://discovery-server:8761/eureka/
+  JWK_URL: http://auth-service:8081/.well-known/jwks.json
+  JWT_ISSUER: novagames
+
+x-service: &service
+  restart: unless-stopped
+  networks: [nova]
+  healthcheck:
+    test: [CMD-SHELL, 'curl -fsS http://localhost:$$SERVER_PORT/actuator/health > /dev/null']
+    interval: 10s
+    timeout: 5s
+    retries: 20
+    start_period: 45s
+
+services:
+  discovery-server:
+    <<: *service
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: discovery-server
+        PORT: "8761"
+    image: nova-games/discovery-server:local
+    ports:
+      - "127.0.0.1:8761:8761"
+    environment:
+      SERVER_PORT: "8761"
+
+  auth-service:
+    <<: *service
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: auth-service
+        PORT: "8081"
+    image: nova-games/auth-service:local
+    ports:
+      - "127.0.0.1:8081:8081"
+    environment:
+      <<: *client-env
+      SERVER_PORT: "8081"
+      DATA_DIR: /data
+      ADMIN_EMAIL: admin@nova.local
+      ADMIN_PASSWORD: "NovaAdmin2026!"
+    volumes:
+      - auth-service-data:/data
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+
+  catalog-service:
+    <<: *service
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: catalog-service
+        PORT: "8082"
+    image: nova-games/catalog-service:local
+    ports:
+      - "127.0.0.1:8082:8082"
+    environment:
+      <<: *client-env
+      SERVER_PORT: "8082"
+      DATA_DIR: /data
+      INTERNAL_KEY: "nova-local-internal-3f8d7a6b9c2e1f054a7d8c9b6e2a1f03"
+    volumes:
+      - catalog-service-data:/data
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+      auth-service:
+        condition: service_healthy
+
+  commerce-service:
+    <<: *service
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: commerce-service
+        PORT: "8083"
+    image: nova-games/commerce-service:local
+    ports:
+      - "127.0.0.1:8083:8083"
+    environment:
+      <<: *client-env
+      SERVER_PORT: "8083"
+      DATA_DIR: /data
+      INTERNAL_KEY: "nova-local-internal-3f8d7a6b9c2e1f054a7d8c9b6e2a1f03"
+    volumes:
+      - commerce-service-data:/data
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+      auth-service:
+        condition: service_healthy
+      catalog-service:
+        condition: service_healthy
+
+  community-service:
+    <<: *service
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: community-service
+        PORT: "8084"
+    image: nova-games/community-service:local
+    ports:
+      - "127.0.0.1:8084:8084"
+    environment:
+      <<: *client-env
+      SERVER_PORT: "8084"
+      DATA_DIR: /data
+    volumes:
+      - community-service-data:/data
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+      auth-service:
+        condition: service_healthy
+
+  support-service:
+    <<: *service
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: support-service
+        PORT: "8085"
+    image: nova-games/support-service:local
+    ports:
+      - "127.0.0.1:8085:8085"
+    environment:
+      <<: *client-env
+      SERVER_PORT: "8085"
+      DATA_DIR: /data
+    volumes:
+      - support-service-data:/data
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+      auth-service:
+        condition: service_healthy
+
+  api-gateway:
+    <<: *service
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: api-gateway
+        PORT: "8080"
+    image: nova-games/api-gateway:local
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      <<: *client-env
+      SERVER_PORT: "8080"
+      FRONTEND_ORIGIN: http://localhost:5173
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+      auth-service:
+        condition: service_healthy
+      catalog-service:
+        condition: service_healthy
+      commerce-service:
+        condition: service_healthy
+      community-service:
+        condition: service_healthy
+      support-service:
+        condition: service_healthy
+
+networks:
+  nova:
+    driver: bridge
+
+volumes:
+  auth-service-data:
+  catalog-service-data:
+  commerce-service-data:
+  community-service-data:
+  support-service-data:

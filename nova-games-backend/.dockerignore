@@ -1,0 +1,12 @@
+.git
+.gitignore
+**/target
+**/data
+**/logs
+**/.idea
+**/*.iml
+**/.env
+.env
+.env.*
+!/.env.example
+**/*.zip
