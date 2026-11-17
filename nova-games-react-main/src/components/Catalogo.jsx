@@ -98,9 +98,9 @@ function Catalogo({
             <Col xs={12} md={9}>
                 <Row xs={1} sm={2} lg={3} xl={4} className="g-4">
                     {productos.length === 0 ? (
-                        <Col>
-                            <p>No hay productos para mostrar.</p>
-                        </Col>
+                  <Col className="d-flex justify-content-center align-items-center py-5">
+                    <p className="mb-0">No hay productos para mostrar.</p>
+                  </Col>
                     ) : (
                         productos.map((producto) => (
                             <Col key={producto.id}>

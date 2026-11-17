@@ -1,52 +1,47 @@
-import { useState } from "react";
-import {Button,Alert} from 'react-bootstrap';
-import Login from './Login'
-import Register from './Registro'
 
-function AuthPage(){
-    const [vista,setVista] = useState('login')
-    const [sesion,setSesion] = useState(null)
+import { useState } from 'react';
+import { Button, Alert, Container } from 'react-bootstrap';
+import Login from './Login';
+import Registro from './Registro';
 
-    function handleLogin(respuesta){
-        setSesion(respuesta);
-    }
-    function cerrarSesion(){
-        setSesion(null);
-    }
-    return(
-        <div className="conhtainer my-4" id="auth">
+function AuthPage({sesion,onLogin,onLogout}){
+    const [vista,setVista] = useState('login');
+
+    return (
+        <Container className="my-4">
             {sesion ? (
                 <Alert variant="success">
                     <h4>Bienvenido, {sesion.user.username}</h4>
                     <p>Rol: {sesion.user.role}</p>
+
                     <Button
-                      variant="outline-dark"
-                      onClick={cerrarSesion}>
-                        Cerrar sesion
-                      </Button>
+                        variant="outline-dark"
+                        onClick={onLogout}>
+                        Cerrar sesión
+                    </Button>
                 </Alert>
             ) : (
                 <>
-                <div className="d-flex gap-2 justify-content-center">
-                    <Button
-                      variant={vista === 'login' ? 'primary' : 'outline-primary'}
-                      onClick={() => setVista('login')}>
-                        Login
-                      </Button>
-                      <Button
-                      variant={vista === 'register' ? 'primary' : 'outline-primary'}
-                      onClick={() => setVista('register')}>
-                        Register
-                      </Button>
-                </div>
-                {vista === 'login' ? (
-                    <Login onLogin={handleLogin}/>
-                ): (
-                    <Register/>
-                )}
+                    <div className="d-flex justify-content-center gap-2">
+                        <Button variant={vista === 'login' ? 'primary' : 'outline-primary'} 
+                        onClick={() => setVista('login')}>
+                            Login
+                        </Button>
+
+                        <Button variant={vista === 'registro' ? 'primary' : 'outline-primary'} 
+                        onClick={() => setVista('registro')}>
+                            Registro
+                        </Button>
+                    </div>
+
+                    {vista === 'login' ? (
+                        <Login onLogin={onLogin}/>
+                    ) : (
+                        <Registro/>
+                    )}
                 </>
             )}
-        </div>
+        </Container>
     );
 }
 
