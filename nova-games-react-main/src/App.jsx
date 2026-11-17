@@ -2,11 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { Container, Button, Alert } from 'react-bootstrap'
-
 import Encabezado from './components/Encabezado.jsx'
 import Catalogo from './components/Catalogo.jsx'
 import productos from './data/productos.js'
-
+import AuthPage from './components/AuthPage.jsx'
 import './App.css'
 
 function App() {
@@ -98,7 +97,7 @@ function App() {
                 onCambiarBusqueda={setBusqueda}
                 onBuscar={() => setBusqueda(busqueda.trim())}
             />
-
+            <AuthPage/>
             <Container className="py-4" id="catalogo">
 
                 {mostrarCarrito && (
