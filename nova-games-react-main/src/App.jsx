@@ -4,12 +4,21 @@ import { useState, useEffect } from 'react'
 import { Container, Button, Alert } from 'react-bootstrap'
 import Encabezado from './components/Encabezado.jsx'
 import Catalogo from './components/Catalogo.jsx'
-import productos from './data/productos.js'
+import { useProductos } from './hooks/useProductos.js'
 import AuthPage from './components/AuthPage.jsx'
 import './App.css'
+import AdminProductosPage from './pages/AdminProductosPage.jsx'
 
 function App() {
-
+    const { productos, cargando, error,recargarProductos } = useProductos();
+    const [sesion, setSesion] = useState(() => {
+        const guardada = sessionStorage.getItem('nova-games-sesion');
+        try{
+            return guardada ? JSON.parse(guardada) : null;
+        }catch{
+            return null;
+        }
+    });
     const [carrito, setCarrito] = useState(() => {
         return JSON.parse(localStorage.getItem('nova-games-carrito')) || []
     })
@@ -20,7 +29,13 @@ function App() {
     const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('')
     const [plataformaSeleccionada, setPlataformaSeleccionada] = useState('')
     const [orden, setOrden] = useState('relevancia')
-
+    useEffect(() => {
+        if(sesion){
+            sessionStorage.setItem('nova-games-sesion',JSON.stringify(sesion));    
+        }else{
+            sessionStorage.removeItem('nova-games-sesion');
+        }
+    },[sesion]);
 
     useEffect(() => {
         localStorage.setItem('nova-games-carrito', JSON.stringify(carrito))
@@ -97,7 +112,23 @@ function App() {
                 onCambiarBusqueda={setBusqueda}
                 onBuscar={() => setBusqueda(busqueda.trim())}
             />
-            <AuthPage/>
+            <AuthPage
+              sesion={sesion}
+              onLogin={setSesion}
+              onLogout={() => setSesion(null)}
+            
+            />
+            {sesion?.user?.role === 'ADMIN' && (
+                <>
+                <Alert variant='info'>
+                    Tienes acceso al panel de administracion.
+                </Alert>
+                <AdminProductosPage token={sesion.accessToken}
+                    onProductoCreado={recargarProductos}
+                />
+
+                </>
+            )}
             <Container className="py-4" id="catalogo">
 
                 {mostrarCarrito && (
@@ -151,7 +182,10 @@ function App() {
                 )}
 
                 <h2 className="mb-3">Catálogo de videojuegos</h2>
+                {cargando && <p>Cargando productos...</p>}
+                {error && <Alert variant='danger'>{error}</Alert>}
 
+                {!cargando && !error && (
                 <Catalogo
                     productos={productosFiltrados}
                     categorias={categorias}
@@ -167,7 +201,7 @@ function App() {
                     onLimpiarFiltros={limpiarFiltros}
                     onAgregarProducto={agregarAlCarrito}
                 />
-
+                )}
             </Container>
         </>
     )
