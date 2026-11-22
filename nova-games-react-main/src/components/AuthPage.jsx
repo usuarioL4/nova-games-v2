@@ -4,8 +4,8 @@ import { Button, Alert, Container } from 'react-bootstrap';
 import Login from './Login';
 import Registro from './Registro';
 
-function AuthPage({sesion,onLogin,onLogout}){
-    const [vista,setVista] = useState('login');
+function AuthPage({sesion,onLogin,onLogout,vistaInicial = 'login'}){
+    const [vista,setVista] = useState(vistaInicial);
 
     return (
         <Container className="my-4">

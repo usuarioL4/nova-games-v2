@@ -1,18 +1,21 @@
 
 import { Card, Button, Badge } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
 
 function TarjetaProducto({ producto, onAgregarProducto }) {
 
-    const { nombre, categoria, precio, stock, imagen } = producto;
+    const { id, nombre, categoria, precio, stock, imagen } = producto;
     const agotado = stock === 0;
 
     return (
         <Card className='h-100 shadow-sm'>
-            <Card.Img
-                variant='top'
-                src={imagen}
-                alt={nombre}
-            />
+            <Link to={`/productos/${id}`}>
+                <Card.Img
+                    variant='top'
+                    src={imagen}
+                    alt={nombre}
+                />
+            </Link>
             <Card.Body className='d-flex flex-column'>
                 {precio < 8000 && (
                     <Badge bg='success' className='mb-2'>
@@ -24,7 +27,11 @@ function TarjetaProducto({ producto, onAgregarProducto }) {
                     {categoria}
                 </Badge>
 
-                <Card.Title>{nombre}</Card.Title>
+                <Card.Title>
+                    <Link to={`/productos/${id}`} className='text-reset text-decoration-none'>
+                        {nombre}
+                    </Link>
+                </Card.Title>
 
                 <Card.Text className='fs-5 fw-semibold'>
                     ${precio.toLocaleString("es-CL")}

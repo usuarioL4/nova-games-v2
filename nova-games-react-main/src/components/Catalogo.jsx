@@ -10,6 +10,10 @@ function Catalogo({
     onCambiarCategoria,
     plataformaSeleccionada,
     onCambiarPlataforma,
+    precioSeleccionado,
+    onCambiarPrecio,
+    soloDisponibles,
+    onCambiarDisponibles,
     orden,
     onCambiarOrden,
     onLimpiarFiltros,
@@ -68,6 +72,43 @@ function Catalogo({
                         label="Todas"
                         checked={plataformaSeleccionada === ''}
                         onChange={() => onCambiarPlataforma('')}
+                    />
+
+                    <h5>Precio</h5>
+
+                    {[
+                        { valor: 'bajo', etiqueta: 'Menos de $20.000' },
+                        { valor: 'medio', etiqueta: '$20.000 - $40.000' },
+                        { valor: 'alto', etiqueta: 'Más de $40.000' }
+                    ].map(rango => (
+                        <Form.Check
+                            key={rango.valor}
+                            id={`precio-${rango.valor}`}
+                            type="radio"
+                            name="precio"
+                            label={rango.etiqueta}
+                            checked={precioSeleccionado === rango.valor}
+                            onChange={() => onCambiarPrecio(rango.valor)}
+                        />
+                    ))}
+
+                    <Form.Check
+                        type="radio"
+                        id="precio-todos"
+                        name="precio"
+                        label="Todos"
+                        checked={precioSeleccionado === ''}
+                        onChange={() => onCambiarPrecio('')}
+                    />
+
+                    <h5>Disponibilidad</h5>
+
+                    <Form.Check
+                        type="checkbox"
+                        id="solo-disponibles"
+                        label="Solo disponibles"
+                        checked={soloDisponibles}
+                        onChange={(e) => onCambiarDisponibles(e.target.checked)}
                     />
 
 
