@@ -1,6 +1,7 @@
 
 import {   Navbar,  Nav,  Container, Button,   Badge, Form, FormControl
 } from 'react-bootstrap'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
 
 const logo = '/imagenes/logo/Nova-Games-logo.png'
 
@@ -9,14 +10,17 @@ function Encabezado({
     onVerCarrito,
     busqueda,
     onCambiarBusqueda,
-    onBuscar
+    onBuscar,
+    sesion,
+    onLogout
 }) {
+    const navigate = useNavigate()
 
     return (
         <>
             <Navbar bg="dark" data-bs-theme="dark" expand="lg" sticky="top">
                 <Container>
-                    <Navbar.Brand href="#inicio">
+                    <Navbar.Brand as={Link} to="/">
                         <img
                             src={logo}
                             alt="Nova Games"
@@ -31,16 +35,36 @@ function Encabezado({
 
                     <Navbar.Collapse id="menu-principal">
                         <Nav className="me-auto">
-                            <Nav.Link href="#inicio">Inicio</Nav.Link>
-                            <Nav.Link href="#catalogo">Productos</Nav.Link>
-                            <Nav.Link href="#comunidad">Comunidad</Nav.Link>
-                            <Nav.Link href="#soporte">Soporte</Nav.Link>
-                            <Nav.Link href="#contacto">Contacto</Nav.Link>
+                            <Nav.Link as={NavLink} to="/" end>Inicio</Nav.Link>
+                            <Nav.Link as={NavLink} to="/productos">Productos</Nav.Link>
+                            <Nav.Link as={NavLink} to="/comunidad">Comunidad</Nav.Link>
+                            <Nav.Link as={NavLink} to="/contacto">Contacto</Nav.Link>
+                            <Nav.Link as={NavLink} to="/nosotros">Nosotros</Nav.Link>
+                            {sesion?.user?.role === 'ADMIN' && (
+                                <Nav.Link as={NavLink} to="/admin">Administración</Nav.Link>
+                            )}
                         </Nav>
 
                         <Nav className="me-3">
-                            <Nav.Link href="#registro">Registrarse</Nav.Link>
-                            <Nav.Link href="#login">Iniciar sesión</Nav.Link>
+                            {sesion ? (
+                                <>
+                                    <Navbar.Text className="me-2">
+                                        Hola, {sesion.user.username}
+                                    </Navbar.Text>
+                                    <Button
+                                        variant="outline-light"
+                                        size="sm"
+                                        onClick={onLogout}
+                                    >
+                                        Cerrar sesión
+                                    </Button>
+                                </>
+                            ) : (
+                                <>
+                                    <Nav.Link as={NavLink} to="/registro">Registrarse</Nav.Link>
+                                    <Nav.Link as={NavLink} to="/login">Iniciar sesión</Nav.Link>
+                                </>
+                            )}
                         </Nav>
 
                         <Button
@@ -59,6 +83,7 @@ function Encabezado({
                     onSubmit={(e) => {
                         e.preventDefault()
                         onBuscar()
+                        navigate('/productos')
                     }}
                 >
                     <FormControl

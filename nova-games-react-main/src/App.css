@@ -167,3 +167,73 @@ body {
 .row > * {
     min-width: 0;
 }
+
+/* Inicio */
+.hero-inicio {
+    min-height: 360px;
+    color: #ffffff;
+    background-color: #0b0b0b;
+    background-size: cover;
+    background-position: center;
+}
+
+.hero-inicio h1 {
+    max-width: 720px;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.8);
+}
+
+/* Detalle de producto */
+.detalle-imagen {
+    width: 100%;
+    max-height: 480px;
+    object-fit: cover;
+    border: 1px solid #292929;
+    border-radius: 8px;
+    background-color: #181818;
+}
+
+#detalle-producto .badge.bg-secondary {
+    background-color: #252525 !important;
+    color: #1e90ff;
+}
+
+/* Comunidad */
+.avatar-comentario {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    font-weight: 700;
+    color: #ffffff;
+    background-color: #1e90ff;
+    border-radius: 50%;
+}
+
+.mapa-comunidad {
+    width: 100%;
+    height: 380px;
+    border: 0;
+    border-radius: 8px;
+}
+
+/* Enlaces y pie de página */
+a {
+    color: #1e90ff;
+}
+
+.pie-pagina {
+    color: #bdbdbd;
+    background-color: #0b0b0b;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.pie-pagina a {
+    color: #bdbdbd;
+    text-decoration: none;
+}
+
+.pie-pagina a:hover {
+    color: #1e90ff;
+}

@@ -1,15 +1,28 @@
 
 
 import { useState, useEffect } from 'react'
+import { Routes, Route, Navigate, Link, useNavigate } from 'react-router-dom'
 import { Container, Button, Alert } from 'react-bootstrap'
 import Encabezado from './components/Encabezado.jsx'
-import Catalogo from './components/Catalogo.jsx'
+import Pie from './components/Pie.jsx'
 import { useProductos } from './hooks/useProductos.js'
 import AuthPage from './components/AuthPage.jsx'
 import './App.css'
 import AdminProductosPage from './pages/AdminProductosPage.jsx'
+import AdminLayout from './pages/AdminLayout.jsx'
+import AdminUsuariosPage from './pages/AdminUsuariosPage.jsx'
+import AdminContactoPage from './pages/AdminContactoPage.jsx'
+import AdminEstadisticasPage from './pages/AdminEstadisticasPage.jsx'
+import InicioPage from './pages/InicioPage.jsx'
+import CatalogoPage from './pages/CatalogoPage.jsx'
+import ProductoDetallePage from './pages/ProductoDetallePage.jsx'
+import ComunidadPage from './pages/ComunidadPage.jsx'
+import ContactoPage from './pages/ContactoPage.jsx'
+import NosotrosPage from './pages/NosotrosPage.jsx'
+import NoEncontradoPage from './pages/NoEncontradoPage.jsx'
 
 function App() {
+    const navigate = useNavigate();
     const { productos, cargando, error,recargarProductos } = useProductos();
     const [sesion, setSesion] = useState(() => {
         const guardada = sessionStorage.getItem('nova-games-sesion');
@@ -28,6 +41,8 @@ function App() {
     const [busqueda, setBusqueda] = useState('')
     const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('')
     const [plataformaSeleccionada, setPlataformaSeleccionada] = useState('')
+    const [precioSeleccionado, setPrecioSeleccionado] = useState('')
+    const [soloDisponibles, setSoloDisponibles] = useState(false)
     const [orden, setOrden] = useState('relevancia')
     useEffect(() => {
         if(sesion){
@@ -40,6 +55,16 @@ function App() {
     useEffect(() => {
         localStorage.setItem('nova-games-carrito', JSON.stringify(carrito))
     }, [carrito])
+
+    function iniciarSesion(nuevaSesion) {
+        setSesion(nuevaSesion)
+        navigate('/')
+    }
+
+    function cerrarSesion() {
+        setSesion(null)
+        navigate('/')
+    }
 
     function agregarAlCarrito(producto) {
         if (producto.stock <= 0) return
@@ -83,7 +108,16 @@ function App() {
         const coincidePlataforma =
             plataformaSeleccionada === '' ||
             producto.plataformas.includes(plataformaSeleccionada)
-        return coincideNombre && coincideCategoria && coincidePlataforma
+
+        const coincidePrecio =
+            precioSeleccionado === '' ||
+            (precioSeleccionado === 'bajo' && producto.precio < 20000) ||
+            (precioSeleccionado === 'medio' && producto.precio >= 20000 && producto.precio <= 40000) ||
+            (precioSeleccionado === 'alto' && producto.precio > 40000)
+
+        const coincideDisponibilidad = !soloDisponibles || producto.stock > 0
+
+        return coincideNombre && coincideCategoria && coincidePlataforma && coincidePrecio && coincideDisponibilidad
     })
 
     if (orden === 'nombre') {
@@ -100,8 +134,12 @@ function App() {
         setBusqueda('')
         setCategoriaSeleccionada('')
         setPlataformaSeleccionada('')
+        setPrecioSeleccionado('')
+        setSoloDisponibles(false)
         setOrden('relevancia')
     }
+
+    const esAdmin = sesion?.user?.role === 'ADMIN'
 
     return (
         <>
@@ -111,27 +149,12 @@ function App() {
                 busqueda={busqueda}
                 onCambiarBusqueda={setBusqueda}
                 onBuscar={() => setBusqueda(busqueda.trim())}
+                sesion={sesion}
+                onLogout={cerrarSesion}
             />
-            <AuthPage
-              sesion={sesion}
-              onLogin={setSesion}
-              onLogout={() => setSesion(null)}
-            
-            />
-            {sesion?.user?.role === 'ADMIN' && (
-                <>
-                <Alert variant='info'>
-                    Tienes acceso al panel de administracion.
-                </Alert>
-                <AdminProductosPage token={sesion.accessToken}
-                    onProductoCreado={recargarProductos}
-                />
 
-                </>
-            )}
-            <Container className="py-4" id="catalogo">
-
-                {mostrarCarrito && (
+            {mostrarCarrito && (
+                <Container className="pt-3">
                     <Alert variant="light" className="border">
                         <div className="d-flex justify-content-between align-items-center">
                             <h4>Mi carrito</h4>
@@ -155,7 +178,14 @@ function App() {
                                         className="d-flex justify-content-between align-items-center border-bottom py-2 gap-2"
                                     >
                                         <span>
-                                            {producto.nombre} × {producto.cantidad}
+                                            <Link
+                                                to={`/productos/${producto.id}`}
+                                                className="text-reset"
+                                                onClick={() => setMostrarCarrito(false)}
+                                            >
+                                                {producto.nombre}
+                                            </Link>
+                                            {' '}× {producto.cantidad}
                                         </span>
 
                                         <Button
@@ -179,30 +209,107 @@ function App() {
                             </>
                         )}
                     </Alert>
-                )}
+                </Container>
+            )}
 
-                <h2 className="mb-3">Catálogo de videojuegos</h2>
-                {cargando && <p>Cargando productos...</p>}
-                {error && <Alert variant='danger'>{error}</Alert>}
-
-                {!cargando && !error && (
-                <Catalogo
-                    productos={productosFiltrados}
-                    categorias={categorias}
-                    plataformas={plataformas}
-                    categoriaSeleccionada={categoriaSeleccionada}
-                    onCambiarCategoria={setCategoriaSeleccionada}
-                    plataformaSeleccionada={plataformaSeleccionada}
-                    onCambiarPlataforma={setPlataformaSeleccionada}
-                    busqueda={busqueda}
-                    onCambiarBusqueda={setBusqueda}
-                    orden={orden}
-                    onCambiarOrden={setOrden}
-                    onLimpiarFiltros={limpiarFiltros}
-                    onAgregarProducto={agregarAlCarrito}
+            <Routes>
+                <Route
+                    path="/"
+                    element={
+                        <InicioPage
+                            productos={productos}
+                            cargando={cargando}
+                            error={error}
+                            onAgregarProducto={agregarAlCarrito}
+                            onSeleccionarCategoria={setCategoriaSeleccionada}
+                        />
+                    }
                 />
-                )}
-            </Container>
+                <Route
+                    path="/productos"
+                    element={
+                        <CatalogoPage
+                            cargando={cargando}
+                            error={error}
+                            productos={productosFiltrados}
+                            categorias={categorias}
+                            plataformas={plataformas}
+                            categoriaSeleccionada={categoriaSeleccionada}
+                            onCambiarCategoria={setCategoriaSeleccionada}
+                            plataformaSeleccionada={plataformaSeleccionada}
+                            onCambiarPlataforma={setPlataformaSeleccionada}
+                            precioSeleccionado={precioSeleccionado}
+                            onCambiarPrecio={setPrecioSeleccionado}
+                            soloDisponibles={soloDisponibles}
+                            onCambiarDisponibles={setSoloDisponibles}
+                            busqueda={busqueda}
+                            onCambiarBusqueda={setBusqueda}
+                            orden={orden}
+                            onCambiarOrden={setOrden}
+                            onLimpiarFiltros={limpiarFiltros}
+                            onAgregarProducto={agregarAlCarrito}
+                        />
+                    }
+                />
+                <Route
+                    path="/productos/:id"
+                    element={<ProductoDetallePage onAgregarProducto={agregarAlCarrito} />}
+                />
+                <Route path="/comunidad" element={<ComunidadPage sesion={sesion} />} />
+                <Route path="/contacto" element={<ContactoPage />} />
+                <Route path="/nosotros" element={<NosotrosPage />} />
+                <Route
+                    path="/login"
+                    element={
+                        <AuthPage
+                            key="login"
+                            vistaInicial="login"
+                            sesion={sesion}
+                            onLogin={iniciarSesion}
+                            onLogout={cerrarSesion}
+                        />
+                    }
+                />
+                <Route
+                    path="/registro"
+                    element={
+                        <AuthPage
+                            key="registro"
+                            vistaInicial="registro"
+                            sesion={sesion}
+                            onLogin={iniciarSesion}
+                            onLogout={cerrarSesion}
+                        />
+                    }
+                />
+                <Route
+                    path="/admin"
+                    element={esAdmin ? <AdminLayout /> : <Navigate to="/login" replace />}
+                >
+                    <Route index element={
+                        <AdminEstadisticasPage
+                            token={sesion?.accessToken}
+                            productos={productos}
+                            cargandoProductos={cargando}
+                            errorProductos={error}
+                        />
+                    } />
+                    <Route path="productos" element={
+                        <AdminProductosPage
+                            token={sesion?.accessToken}
+                            productos={productos}
+                            cargando={cargando}
+                            error={error}
+                            onProductosActualizados={recargarProductos}
+                        />
+                    } />
+                    <Route path="usuarios" element={<AdminUsuariosPage token={sesion?.accessToken} />} />
+                    <Route path="contacto" element={<AdminContactoPage token={sesion?.accessToken} />} />
+                </Route>
+                <Route path="*" element={<NoEncontradoPage />} />
+            </Routes>
+
+            <Pie />
         </>
     )
 }
